@@ -580,7 +580,7 @@ export function CheckpointPanel({
                 {roomCode}
               </span>
               <span style={{ fontSize: FONT.size.micro, color: colors.textDim, marginLeft: "auto" }}>
-                stratis-beta.vercel.app/#/room
+                {window.location.host}/#/room
               </span>
             </>
           ) : (

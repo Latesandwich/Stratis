@@ -10,7 +10,7 @@ debugging a failing command — it has probably already been paid for once.
 - Repo: `C:\Users\DMAX2\Downloads\AI PROJECT\Stratis`
 - Frontend at the root, backend in `backend/`, shared types in `shared/`,
   AI providers in `ai-service/`.
-- Deployed: frontend → Vercel (`stratis-beta.vercel.app`), backend → Render
+- Deployed: frontend → Vercel (`stratis-lite.vercel.app`; moved from `stratis-beta` on 2026-09-16 when the repo moved to `Latesandwich/Stratis`), backend → Render
   (`stratis-9s5r.onrender.com`), database → Supabase.
 - **Branches:** `main` is what deploys. `Alpha` is behind it. Check which branch
   is checked out before assuming the working tree matches production.
