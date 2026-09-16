@@ -46,7 +46,6 @@ function rowToCard(row: LiveCardRow): SuggestionCard {
 // of it. Never throws: a DB blip must not take down the live meeting.
 export async function hydrate(sessionId: string): Promise<void> {
   if (hydrated.has(sessionId)) return;
-  hydrated.add(sessionId);
   try {
     const result = await db.query<LiveCardRow>(
       `SELECT id, session_id, title, brief_description, suggested_question,
@@ -56,22 +55,26 @@ export async function hydrate(sessionId: string): Promise<void> {
        ORDER BY created_at ASC`,
       [sessionId],
     );
-    if (result.rows.length === 0) return;
     const m = sessionMap(sessionId);
     for (const row of result.rows) {
       if (!m.has(row.id)) m.set(row.id, rowToCard(row));
     }
-    console.log(
-      `[suggestions] restored ${result.rows.length} card(s) for session ${sessionId} from live_cards`,
-    );
+    if (result.rows.length) {
+      console.log(
+        `[suggestions] restored ${result.rows.length} card(s) for session ${sessionId} from live_cards`,
+      );
+    }
+    hydrated.add(sessionId);
   } catch (err) {
     console.error(`[suggestions] hydrate failed for ${sessionId}:`, err);
   }
 }
 
-function persistCard(card: SuggestionCard): void {
-  void db
-    .query(
+async function persistCards(cards: SuggestionCard[]): Promise<void> {
+  if (cards.length === 0) return;
+  await db.tx(async (client) => {
+    for (const card of cards) {
+      await client.query(
       `INSERT INTO live_cards
          (id, session_id, card_type, title, brief_description, suggested_question,
           urgency, state, confidence, answered, created_at)
@@ -90,25 +93,9 @@ function persistCard(card: SuggestionCard): void {
         false,
         card.createdAt,
       ],
-    )
-    .catch((err) => console.error(`[suggestions] persist failed for ${card.id}:`, err));
-}
-
-function persistAnswered(
-  cardId: string,
-  source: AnsweredSource,
-  at: string,
-  answerText: string | null,
-): void {
-  void db
-    .query(
-      `UPDATE live_cards
-       SET answered = TRUE, answered_by = $1, answered_at = $2, state = 'ANSWERED',
-           answer_text = COALESCE($4, answer_text)
-       WHERE id = $3`,
-      [source, at, cardId, answerText],
-    )
-    .catch((err) => console.error(`[suggestions] persist answered failed for ${cardId}:`, err));
+      );
+    }
+  });
 }
 
 const MAX_OPEN_CARDS_PER_SESSION = 4;
@@ -124,7 +111,7 @@ function sessionMap(sessionId: string): Map<string, SuggestionCard> {
   return m;
 }
 
-export function createFromBlocks(sessionId: string, blocks: AIBlock[]): SuggestionCard[] {
+export async function createFromBlocks(sessionId: string, blocks: AIBlock[]): Promise<SuggestionCard[]> {
   const m = sessionMap(sessionId);
   const created: SuggestionCard[] = [];
   for (const b of blocks) {
@@ -137,14 +124,14 @@ export function createFromBlocks(sessionId: string, blocks: AIBlock[]): Suggesti
       answered: false,
       createdAt: now(),
     };
-    m.set(card.id, card);
-    persistCard(card);
     created.push(card);
   }
+  await persistCards(created);
+  for (const card of created) m.set(card.id, card);
   return created;
 }
 
-export function createFromLiveCards(sessionId: string, cards: LiveCardDTO[]): SuggestionCard[] {
+export async function createFromLiveCards(sessionId: string, cards: LiveCardDTO[]): Promise<SuggestionCard[]> {
   const m = sessionMap(sessionId);
   const created: SuggestionCard[] = [];
 
@@ -169,12 +156,12 @@ export function createFromLiveCards(sessionId: string, cards: LiveCardDTO[]): Su
       urgency: c.urgency,
       confidence: c.confidence,
     };
-    m.set(card.id, card);
-    persistCard(card);
     created.push(card);
     seenQuestions.push(question);
     openCount++;
   }
+  await persistCards(created);
+  for (const card of created) m.set(card.id, card);
   return created;
 }
 
@@ -196,19 +183,42 @@ export function allCards(sessionId: string): SuggestionCard[] {
  * answer is kept on the card so the record shows what the question was settled
  * with, not merely that somebody pressed a button.
  */
-export function markAnswered(
+export async function markAnswered(
   sessionId: string,
   cardId: string,
   source: AnsweredSource,
   answerText?: string | null,
-): SuggestionCard | null {
+): Promise<SuggestionCard | null> {
   const card = sessionMap(sessionId).get(cardId);
-  if (!card || card.answered) return null;
+  if (!card || (card.answered && !(source === "manual" && card.answeredBy === "auto"))) return null;
   const answer = answerText?.trim() || null;
+  const at = now();
+  const result = await db.query(
+    `UPDATE live_cards
+     SET answered = TRUE, answered_by = $1, answered_at = $2, state = 'ANSWERED',
+         answer_text = COALESCE($4, answer_text)
+     WHERE id = $3 AND session_id = $5
+       AND (answered = FALSE OR ($1 = 'manual' AND answered_by = 'auto'))`,
+    [source, at, cardId, answer, sessionId],
+  );
+  if (result.rowCount === 0) return null;
   card.answered = true;
   card.answeredBy = source;
   if (answer) card.answerText = answer;
-  persistAnswered(cardId, source, now(), answer);
+  return card;
+}
+
+/** Applies a committed answer after its transaction has succeeded. */
+export function applyCommittedAnswer(
+  sessionId: string,
+  cardId: string,
+  answerText: string,
+): SuggestionCard | null {
+  const card = sessionMap(sessionId).get(cardId);
+  if (!card) return null;
+  card.answered = true;
+  card.answeredBy = "manual";
+  card.answerText = answerText;
   return card;
 }
 
@@ -239,4 +249,5 @@ export function dismissCard(sessionId: string, cardId: string): SuggestionCard |
 
 export function clearSession(sessionId: string): void {
   bySession.delete(sessionId);
+  hydrated.delete(sessionId);
 }

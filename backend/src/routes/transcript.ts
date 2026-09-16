@@ -211,7 +211,7 @@ async function markAnswersFromText(sessionId: string, text: string): Promise<str
   const answered: string[] = [];
 
   for (const id of detectAnswered(text, open)) {
-    if (suggestions.markAnswered(sessionId, id, "auto")) {
+    if (await suggestions.markAnswered(sessionId, id, "auto")) {
       pushAnswered(sessionId, id, "auto");
       answered.push(id);
     }
@@ -270,7 +270,7 @@ async function routeTextToAi(
   }
 
   const cards =
-    role === "facilitator" ? suggestions.createFromLiveCards(sessionId, out.cards) : [];
+    role === "facilitator" ? await suggestions.createFromLiveCards(sessionId, out.cards) : [];
 
   for (const card of cards) pushSuggestion(card);
 
@@ -388,6 +388,11 @@ export async function recordTypedTurn(input: {
   });
   scheduleAiRouting(input.sessionId, input.text, input.role, row.id);
   return row;
+}
+
+/** Schedule only post-commit work for a saved typed answer. */
+export function scheduleSavedAnswerForAi(sessionId: string, text: string, role: string): void {
+  scheduleAiRouting(sessionId, text, role);
 }
 
 async function lastTranscriptText(sessionId: string): Promise<string | null> {

@@ -89,8 +89,7 @@ export function StartMeetingConfirm({
           color: colors.textMuted,
         }}
       >
-        The microphone opens as soon as you confirm, and everyone in the room should know
-        they are being recorded.
+        You can pause or stop transcription from the meeting screen.
       </p>
     </Modal>
   );

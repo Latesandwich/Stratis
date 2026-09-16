@@ -755,10 +755,65 @@ export const TH: Record<string, string> = {
   Goal: "เป้าหมาย",
   "No goal set — Stratis has nothing to aim at":
     "ยังไม่ได้ตั้งเป้าหมาย — Stratis จะไม่รู้ว่าต้องช่วยเรื่องอะไร",
-  "The microphone opens as soon as you confirm, and everyone in the room should know they are being recorded.":
-    "ไมโครโฟนจะเปิดทันทีที่ยืนยัน และทุกคนในห้องควรรู้ว่ากำลังถูกบันทึกเสียง",
+  "You can pause or stop transcription from the meeting screen.":
+    "คุณสามารถพักหรือหยุดการถอดเสียงได้จากหน้าจอการประชุม",
   "Nothing waiting to start. New meetings and anything you have scheduled appear here.":
     "ยังไม่มีการประชุมที่รอเริ่ม การประชุมใหม่และที่นัดไว้จะแสดงที่นี่",
+
+  // --- Live transcription status and beta legal pages ---
+  "Transcription on": "กำลังถอดเสียง",
+  "Stratis is creating a live transcript of this meeting.":
+    "Stratis กำลังสร้างบทถอดเสียงสดของการประชุมนี้",
+  "Privacy Notice": "ประกาศความเป็นส่วนตัว",
+  "Terms of Use": "ข้อกำหนดการใช้งาน",
+  "Privacy Notice (opens in a new tab)": "ประกาศความเป็นส่วนตัว (เปิดในแท็บใหม่)",
+  "Terms of Use (opens in a new tab)": "ข้อกำหนดการใช้งาน (เปิดในแท็บใหม่)",
+  Home: "หน้าแรก",
+  Download: "ดาวน์โหลด",
+  "Beta document": "เอกสารสำหรับช่วงเบต้า",
+  "Stratis is a pre-incorporation beta. Its identity, contact details, and data-retention details are being finalised. This document may change before production launch.":
+    "Stratis เป็นโครงการเบต้าที่ยังอยู่ระหว่างการจัดตั้งองค์กร กำลังจัดทำข้อมูลนิติบุคคล ช่องทางติดต่อ และรายละเอียดการเก็บรักษาข้อมูล เอกสารนี้อาจเปลี่ยนแปลงก่อนเปิดใช้งานจริง",
+  "Beta Privacy Notice": "ประกาศความเป็นส่วนตัวสำหรับช่วงเบต้า",
+  "Beta Terms of Use": "ข้อกำหนดการใช้งานสำหรับช่วงเบต้า",
+  "Version {n} · Effective {n} September {n}": "เวอร์ชัน {n} · มีผลตั้งแต่ {n} กันยายน {n}",
+  "Beta notice": "ประกาศสำหรับช่วงเบต้า",
+  "Stratis is a pre-incorporation beta project. Its identity, contact details, and data-retention details are being finalised.":
+    "Stratis เป็นโครงการเบต้าที่ยังอยู่ระหว่างการจัดตั้งองค์กร กำลังจัดทำข้อมูลนิติบุคคล ช่องทางติดต่อ และรายละเอียดการเก็บรักษาข้อมูล",
+  "This document is not final production legal copy and may be revised before production launch.":
+    "เอกสารนี้ยังไม่ใช่ข้อกฎหมายฉบับสุดท้ายสำหรับการใช้งานจริง และอาจมีการปรับปรุงก่อนเปิดตัว",
+  "Information used during beta": "ข้อมูลที่ใช้ระหว่างช่วงเบต้า",
+  "Stratis may process account and workspace information, meeting metadata, audio when enabled, transcripts, evidence and questions derived from transcripts, user-supplied answers, and diagnostics necessary to operate and troubleshoot the beta.":
+    "Stratis อาจประมวลผลข้อมูลบัญชีและพื้นที่ทำงาน ข้อมูลเมตาของการประชุม เสียงเมื่อเปิดใช้ บทถอดเสียง หลักฐานและคำถามที่ได้จากบทถอดเสียง คำตอบที่ผู้ใช้ป้อน และข้อมูลวินิจฉัยที่จำเป็นต่อการให้บริการและแก้ไขปัญหาในช่วงเบต้า",
+  "Google services process audio and selected transcript material to provide transcription and meeting-support features. Do not include information that you are not permitted to share or have processed.":
+    "บริการของ Google ประมวลผลเสียงและเนื้อหาบทถอดเสียงที่เลือกไว้เพื่อให้บริการการถอดเสียงและการช่วยเหลือการประชุม อย่าใส่ข้อมูลที่คุณไม่มีสิทธิ์เปิดเผยหรือให้ประมวลผล",
+  "Security and retention": "ความปลอดภัยและการเก็บรักษาข้อมูล",
+  "Stratis uses reasonable security practices to help protect information, but no system is completely secure and absolute security cannot be guaranteed.":
+    "Stratis ใช้มาตรการรักษาความปลอดภัยที่เหมาะสมเพื่อช่วยปกป้องข้อมูล แต่ไม่มีระบบใดปลอดภัยอย่างสมบูรณ์และไม่อาจรับประกันความปลอดภัยได้โดยเด็ดขาด",
+  "Google services and configured beta features may retain data as described in this beta notice. Data-retention details are still being finalised; this notice does not promise a storage region, immediate deletion, or a retention duration.":
+    "บริการของ Google และฟีเจอร์เบต้าที่กำหนดค่าไว้อาจเก็บรักษาข้อมูลตามที่ระบุในประกาศนี้ รายละเอียดการเก็บรักษาข้อมูลยังอยู่ระหว่างจัดทำ และประกาศนี้ไม่ได้รับรองภูมิภาคที่จัดเก็บ การลบข้อมูลทันที หรือระยะเวลาการเก็บรักษา",
+  "Your choices": "ทางเลือกของคุณ",
+  "The identity, contact details, data-retention arrangements, and request path for deletion or export are still being finalised. Please consider this when deciding whether to use Stratis during the beta.":
+    "ข้อมูลนิติบุคคล ช่องทางติดต่อ แนวทางการเก็บรักษาข้อมูล และช่องทางขอลบหรือส่งออกข้อมูลยังอยู่ระหว่างจัดทำ โปรดพิจารณาเรื่องนี้ก่อนตัดสินใจใช้ Stratis ในช่วงเบต้า",
+  "Host responsibility": "ความรับผิดชอบของผู้เริ่มการถอดเสียง",
+  "The person who starts transcription is responsible for giving notice and obtaining any permissions required for participants and for the meeting content before using Stratis.":
+    "ผู้ที่เริ่มการถอดเสียงมีหน้าที่แจ้งให้ทราบและขออนุญาตที่จำเป็นจากผู้เข้าร่วมและสำหรับเนื้อหาการประชุมก่อนใช้ Stratis",
+  "If a meeting uses Zoom, Meet, or another external platform, Stratis cannot identify or directly notify people who are only present in Zoom, Meet, or another external platform.":
+    "หากการประชุมใช้ Zoom, Meet หรือแพลตฟอร์มภายนอกอื่น Stratis จะไม่สามารถระบุตัวตนหรือแจ้งผู้ที่อยู่เฉพาะใน Zoom, Meet หรือแพลตฟอร์มภายนอกนั้นได้โดยตรง",
+  "Beta output": "ผลลัพธ์ในช่วงเบต้า",
+  "Transcripts and AI output must be reviewed by a human before making decisions or relying on them. Stratis does not guarantee their accuracy, completeness, or suitability for any purpose.":
+    "ต้องมีมนุษย์ตรวจทานบทถอดเสียงและผลลัพธ์จาก AI ก่อนนำไปตัดสินใจหรือพึ่งพา Stratis ไม่รับประกันความถูกต้อง ความครบถ้วน หรือความเหมาะสมต่อวัตถุประสงค์ใด ๆ",
+  "Use of Google services is limited to providing the beta features described by Stratis.":
+    "การใช้บริการของ Google จำกัดอยู่เพื่อให้บริการฟีเจอร์เบต้าตามที่ Stratis อธิบายไว้",
+  "Acceptable use": "การใช้งานที่ยอมรับได้",
+  "You must not record unlawfully, violate the rights of others, interfere with security, or use transcripts or AI output in high-impact contexts without appropriate human review.":
+    "คุณต้องไม่บันทึกเสียงโดยผิดกฎหมาย ละเมิดสิทธิของผู้อื่น รบกวนความปลอดภัย หรือใช้บทถอดเสียงหรือผลลัพธ์จาก AI ในบริบทที่มีผลกระทบสูงโดยไม่มีการตรวจทานจากมนุษย์อย่างเหมาะสม",
+  "Download Stratis": "ดาวน์โหลด Stratis",
+  "Checking the latest verified release…": "กำลังตรวจสอบรุ่นล่าสุดที่ยืนยันแล้ว…",
+  "Download details are temporarily unavailable.": "รายละเอียดการดาวน์โหลดไม่พร้อมใช้งานชั่วคราว",
+  "Download for Windows": "ดาวน์โหลดสำหรับ Windows",
+  "Download the installer, then run it to install Stratis. If Stratis is already installed, running the installer upgrades it and keeps your local data.":
+    "ดาวน์โหลดตัวติดตั้งแล้วเปิดใช้งานเพื่อติดตั้ง Stratis หากติดตั้ง Stratis ไว้อยู่แล้ว การเปิดตัวติดตั้งจะอัปเกรดแอปและเก็บข้อมูลในเครื่องของคุณไว้",
+  "Release notes": "บันทึกประจำรุ่น",
 
   // --- Dashboard: the decision state ---
   "What needs your attention": "สิ่งที่ต้องดูตอนนี้",

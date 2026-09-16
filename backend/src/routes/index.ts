@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { meetingRouter } from "./meeting";
-import { aiRouter } from "./ai";
+import { aiRouter, saveMeetingAnswerHandler } from "./ai";
+import { requireAuth } from "../auth/middleware";
+import { requireSessionAccess } from "../middleware/requireSessionAccess";
 import { summaryRouter } from "./summary";
 import { sessionRouter } from "./session";
 import { transcriptRouter } from "./transcript";
@@ -21,6 +23,7 @@ apiRouter.use("/meeting", meetingRouter);
 apiRouter.use("/ai", aiRouter);
 apiRouter.use("/summary", summaryRouter);
 apiRouter.use("/session", sessionRouter);
+apiRouter.post("/session/:id/answers", requireAuth, requireSessionAccess("params"), saveMeetingAnswerHandler);
 apiRouter.use("/transcript", transcriptRouter);
 apiRouter.use("/document", documentRouter);
 apiRouter.use("/notification", notificationRouter);

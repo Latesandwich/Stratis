@@ -14,7 +14,7 @@ export function requireSessionAccess(source: "body" | "params" = "body") {
   return async (req: Request, res: Response, next: NextFunction) => {
     const raw =
       source === "params"
-        ? req.params.sessionId
+        ? req.params.sessionId ?? req.params.id
         : typeof req.body?.sessionId === "string"
           ? req.body.sessionId
           : "";

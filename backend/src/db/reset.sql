@@ -42,6 +42,8 @@ DROP TABLE IF EXISTS organizations CASCADE;
 DROP TABLE IF EXISTS consent_logs CASCADE;
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS decisions CASCADE;
+DROP TABLE IF EXISTS meeting_answers CASCADE;
+DROP TABLE IF EXISTS answer_context_jobs CASCADE;
 
 -- Added with the plan codes and the room reactions; reset.sql omitting a table
 -- leaves it standing with orphan rows and no foreign keys after a --reset,

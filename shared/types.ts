@@ -306,6 +306,34 @@ export const PM_SECTIONS: { key: PmSectionKey; title: string }[] = [
 
 export type AnsweredSource = "auto" | "manual";
 
+/** A facilitator's durable response to either a planned or surfaced question. */
+export interface AnswerInput {
+  sessionId: string;
+  questionId: string;
+  origin: "planned" | "ai";
+  /** Required for a planned question; AI question text always comes from the saved card. */
+  plannedQuestionText?: string;
+  text: string;
+  /** Display name for the transcript turn, supplied by the signed-in facilitator. */
+  speaker?: string;
+  /** Client-generated key used to make a timed-out retry safe. */
+  requestId: string;
+}
+
+export interface SavedAnswer {
+  id: string;
+  sessionId: string;
+  questionId: string;
+  questionText: string;
+  text: string;
+  actorId: string | null;
+  speaker: string;
+  createdAt: string;
+  transcriptId: string;
+  /** True only for the request that inserted this answer; retries must not reroute AI work. */
+  created: boolean;
+}
+
 export interface SuggestionCard {
   id: string;
   sessionId: string;

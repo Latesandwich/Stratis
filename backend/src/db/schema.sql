@@ -2,9 +2,9 @@
 -- STRATIS DATABASE UPGRADE — FINAL ER DIAGRAM (SUPABASE)
 -- ==========================================================
 
--- This file is ADDITIVE and safe to re-run against a live database: every
--- statement is CREATE TABLE IF NOT EXISTS, ADD COLUMN IF NOT EXISTS, or CREATE
--- INDEX IF NOT EXISTS. Keep it that way.
+-- This file is safe to re-run against a live database. Most statements are
+-- additive; the named constraint replacements below intentionally correct
+-- delete behaviour that an earlier schema made impossible to change in place.
 --
 -- The DROP TABLE block that used to sit here now lives in reset.sql and runs
 -- only under `db:migrate --reset`. It made `db:migrate` — the command you reach
@@ -679,3 +679,74 @@ ALTER TABLE invites ADD CONSTRAINT invites_role_check
 -- speaking. The text they type is kept with the card, so the record shows what
 -- settled the question rather than only that it was settled.
 ALTER TABLE live_cards ADD COLUMN IF NOT EXISTS answer_text TEXT;
+
+-- 34. DURABLE MEETING ANSWERS
+-- An answer is a fact in its own right, not merely a state on an AI card. The
+-- transcript link lets the existing summary pipeline see the exact words, and
+-- the composite foreign keys prevent a row from joining a session to a card or
+-- transcript that belongs to another meeting.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'transcripts_session_id_id_key'
+    ) THEN
+        ALTER TABLE transcripts
+            ADD CONSTRAINT transcripts_session_id_id_key UNIQUE (session_id, id);
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'live_cards_session_id_id_key'
+    ) THEN
+        ALTER TABLE live_cards
+            ADD CONSTRAINT live_cards_session_id_id_key UNIQUE (session_id, id);
+    END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS meeting_answers (
+    id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+    question_id TEXT NOT NULL,
+    origin TEXT NOT NULL CHECK (origin IN ('planned', 'ai')),
+    question_text TEXT NOT NULL CHECK (char_length(question_text) BETWEEN 1 AND 1000),
+    text TEXT NOT NULL CHECK (char_length(text) BETWEEN 1 AND 1000),
+    actor_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    transcript_id TEXT NOT NULL,
+    request_id TEXT NOT NULL CHECK (char_length(request_id) BETWEEN 1 AND 128),
+    live_card_id TEXT,
+    created_at TIMESTAMPTZ NOT NULL,
+    UNIQUE (session_id, request_id),
+    UNIQUE (id, session_id),
+    FOREIGN KEY (session_id, transcript_id)
+        REFERENCES transcripts(session_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (session_id, live_card_id)
+        REFERENCES live_cards(session_id, id) ON DELETE CASCADE,
+    CHECK (
+        (origin = 'planned' AND live_card_id IS NULL)
+        OR (origin = 'ai' AND live_card_id IS NOT NULL)
+    )
+);
+
+CREATE INDEX IF NOT EXISTS idx_meeting_answers_session_created
+    ON meeting_answers(session_id, created_at);
+
+-- `CREATE TABLE IF NOT EXISTS` does not replace old foreign-key rules. Keep
+-- these names explicit so an existing beta database gets the same behaviour
+-- as a new one: deleting a meeting removes its answer rows with its cards;
+-- deleting an account retains the answer record without its former actor id.
+ALTER TABLE meeting_answers
+    ALTER COLUMN actor_id DROP NOT NULL;
+ALTER TABLE meeting_answers
+    DROP CONSTRAINT IF EXISTS meeting_answers_session_id_live_card_id_fkey;
+ALTER TABLE meeting_answers
+    ADD CONSTRAINT meeting_answers_session_id_live_card_id_fkey
+    FOREIGN KEY (session_id, live_card_id)
+    REFERENCES live_cards(session_id, id) ON DELETE CASCADE;
+ALTER TABLE meeting_answers
+    DROP CONSTRAINT IF EXISTS meeting_answers_actor_id_fkey;
+ALTER TABLE meeting_answers
+    ADD CONSTRAINT meeting_answers_actor_id_fkey
+    FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL;
+
+-- This job table was never consumed. New typed answers route once after their
+-- transaction commits, and an idempotent retry is marked `created: false`.
+-- Remove the inert rows rather than retaining an ever-growing fake queue.
+DROP TABLE IF EXISTS answer_context_jobs;

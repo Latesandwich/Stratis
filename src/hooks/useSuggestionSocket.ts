@@ -38,6 +38,13 @@ function toUICard(card: ServerCard): UICard {
   }
 }
 
+function newAnswerRequestId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `web_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
+
 export interface SuggestionSocketHandlers {
   onSttInterim?: (text: string) => void
   onTranscriptFinal?: (row: WsTranscriptRow) => void
@@ -71,6 +78,9 @@ export function useSuggestionSocket(
   const [role, setRole] = useState<UseSuggestionSocketReturn['role']>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Keep the same key for a retry of the same answer. A connection can die
+  // after the server commits but before the browser receives its response.
+  const typedAnswerRequestIdsRef = useRef(new Map<string, string>());
 
   const handlersRef = useRef<SuggestionSocketHandlers | undefined>(handlers);
   useEffect(() => {
@@ -134,6 +144,9 @@ export function useSuggestionSocket(
     async (id: string, answer: string): Promise<boolean> => {
       const text = answer.trim();
       if (!token || !validSessionId || !text) return false;
+      const retryKey = `${id}\u0000${text}`;
+      const requestId = typedAnswerRequestIdsRef.current.get(retryKey) ?? newAnswerRequestId();
+      typedAnswerRequestIdsRef.current.set(retryKey, requestId);
       try {
         await apiFetch('/api/ai/suggest/answer', {
           method: 'POST',
@@ -142,8 +155,10 @@ export function useSuggestionSocket(
             cardId: id,
             answer: text,
             speaker: speakerName,
+            requestId,
           },
         });
+        typedAnswerRequestIdsRef.current.delete(retryKey);
         setCards((prev) =>
           prev.map((c) => (c.id === id ? { ...c, status: 'answered' as const } : c))
         );

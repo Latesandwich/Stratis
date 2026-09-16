@@ -14,6 +14,7 @@ import { LangProvider, useLang } from "./hooks/useLang";
 import { useUpdateGuard } from "./hooks/useUpdateGuard";
 import { installTrackFlush, track } from "./lib/track";
 import { apiFetch } from "./lib/http";
+import { publicRouteForPath } from "./lib/publicRoutes";
 import type { User } from "@shared/types";
 import { localeTag } from "./i18n/locale";
 import {
@@ -35,6 +36,8 @@ const DocumentView = lazy(() => import("./pages/DocumentView"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Pricing = lazy(() => import("./pages/Pricing"));
+const Download = lazy(() => import("./pages/Download"));
+const LegalDocumentPage = lazy(() => import("./pages/LegalDocument"));
 const Join = lazy(() => import("./pages/Join"));
 const Room = lazy(() => import("./pages/Room"));
 const DesktopSignIn = lazy(() => import("./pages/DesktopSignIn"));
@@ -81,6 +84,7 @@ const PAGE_LABELS: Record<string, string> = {
   settings: "Settings",
   admin: "Admin",
   pricing: "Plans",
+  download: "Download",
 };
 
 function LiveClock({ colors }: { colors: { accent: string } }) {
@@ -158,6 +162,10 @@ function renderPage(
  */
 function readEntryRoute(): { page: string; params: Record<string, string> } {
   const hash = window.location.hash.replace(/^#\/?/, "");
+  if (!hash) {
+    const publicRoute = publicRouteForPath(window.location.pathname);
+    if (publicRoute) return { page: publicRoute, params: {} };
+  }
   const [page, query] = hash.split("?");
   const params: Record<string, string> = {};
   if (query) new URLSearchParams(query).forEach((v, k) => { params[k] = v; });
@@ -354,7 +362,7 @@ function AppShell() {
 
   /** Back out of a public entry screen to the marketing site. */
   const goToLanding = () => {
-    window.history.pushState(null, "", "#/");
+    window.history.pushState(null, "", window.location.pathname === "/download" ? "/" : "#/");
     setEntryRoute({ page: "", params: {} });
     setAuthPage("landing");
   };
@@ -497,6 +505,10 @@ function AppShell() {
 
   useEffect(() => {
     const onPopState = () => {
+      // A browser Back/Forward navigation can move between the conventional
+      // `/download` URL and the hash-based app routes. `hashchange` does not
+      // run for the pathname half of that transition.
+      setEntryRoute(readEntryRoute());
       const entry = hashToEntry();
       handleNav(entry.page, entry.params);
     };
@@ -546,6 +558,28 @@ function AppShell() {
       <ErrorBoundary area="room">
         <Suspense fallback={<RouteFallback colors={colors} />}>
           <Room code={entryRoute.params.code} onBack={goToLanding} />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
+  // Downloads are public. The page itself refuses to render an installer link
+  // until its release metadata has passed the same trust boundary as the app.
+  if (entryRoute.page === "download") {
+    return (
+      <ErrorBoundary area="download">
+        <Suspense fallback={<RouteFallback colors={colors} />}>
+          <Download />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
+  if (entryRoute.page === "privacy" || entryRoute.page === "terms") {
+    return (
+      <ErrorBoundary area={entryRoute.page}>
+        <Suspense fallback={<RouteFallback colors={colors} />}>
+          <LegalDocumentPage documentId={entryRoute.page} />
         </Suspense>
       </ErrorBoundary>
     );

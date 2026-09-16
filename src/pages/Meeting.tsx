@@ -24,6 +24,7 @@ import { useSessionRecovery } from "../hooks/useSessionRecovery";
 import { useMediaRecorder } from "../hooks/useMediaRecorder";
 import { usePcmStream } from "../hooks/usePcmStream";
 import { mergeTranscripts } from "../lib/mergeTranscripts";
+import { isLiveTranscriptionActive, transcriptionStatus } from "../lib/transcriptionStatus";
 import { loadSeen, saveSeen, shouldInterruptEnd, unreviewedIds } from "../lib/checkpointReview";
 import { ApiError, apiFetch } from "../lib/http";
 import { localeTag } from "../i18n/locale";
@@ -632,6 +633,7 @@ export default function Meeting({ onNav }: MeetingProps) {
     error: recError,
     start: startRec,
     stop: stopRec,
+    status: recorderStatus,
   } = useMediaRecorder({ onChunk: sendAudioChunk, chunkIntervalMs: CHUNK_MAX_MS });
 
   useEffect(() => {
@@ -658,8 +660,9 @@ export default function Meeting({ onNav }: MeetingProps) {
     if (pcm.error) setError(pcm.error);
   }, [pcm.error]);
 
-  /** The clip-upload fallback has no health signal; only the PCM stream is watched. */
-  const captureLive = isRecording && (pcm.status !== "streaming" || pcm.health === "live");
+  const captureLive =
+    (pcm.status === "streaming" && pcm.health === "live") || recorderStatus === "recording";
+  const transcriptionAnnouncement = transcriptionStatus(isLiveTranscriptionActive(isRecording, captureLive));
 
   useEffect(() => {
     if (!connected) {
@@ -1019,6 +1022,32 @@ useEffect(() => {
                       ? "RECONNECTING"
                       : "NOT RECORDING"}
               </Chip>
+
+              {transcriptionAnnouncement && (
+                <div
+                  role="status"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: SPACE[2],
+                    flexWrap: "wrap",
+                    fontSize: FONT.size.label,
+                    color: colors.textMuted,
+                  }}
+                >
+                  <span style={{ color: colors.accent, fontWeight: 700 }}>{transcriptionAnnouncement}</span>
+                  <span>Stratis is creating a live transcript of this meeting.</span>
+                  <span>
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" aria-label="Privacy Notice (opens in a new tab)" style={{ color: colors.accent }}>
+                      Privacy Notice
+                    </a>
+                    <span aria-hidden> · </span>
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" aria-label="Terms of Use (opens in a new tab)" style={{ color: colors.accent }}>
+                      Terms of Use
+                    </a>
+                  </span>
+                </div>
+              )}
 
               {/* The answer to "what's the code?", without leaving the screen
                   you are running the meeting from. */}
