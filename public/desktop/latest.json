@@ -1,8 +1,8 @@
 {
-  "version": "0.4.0",
-  "publishedAt": "2026-09-17T07:57:19Z",
-  "installerUrl": "https://github.com/Latesandwich/stratis-releases/releases/download/v0.4.0/Stratis-Setup-0.4.0.exe",
-  "sha256": "1146ba175d0984b6610090465c3a4ec22cac16bbc0ba1ede8ec53c72a18129b0",
-  "releaseNotesUrl": "https://github.com/Latesandwich/stratis-releases/releases/tag/v0.4.0",
+  "version": "0.4.1",
+  "publishedAt": "2026-09-17T08:16:06Z",
+  "installerUrl": "https://github.com/Latesandwich/stratis-releases/releases/download/v0.4.1/Stratis-Setup-0.4.1.exe",
+  "sha256": "64aae389d9cc1605f234a5b6dbc39b2373be9a47818bcf9eb67a5ad51d308d11",
+  "releaseNotesUrl": "https://github.com/Latesandwich/stratis-releases/releases/tag/v0.4.1",
   "minimumSupportedVersion": "0.1.0"
 }
